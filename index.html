@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#155eef"><title>Bozor — маркетплейс</title>
+  <meta name="theme-color" content="#17172f"><meta name="description" content="Bozor — маркетплейс Узбекистана. Покупай, продавай и договаривайся прямо на сайте."><title>Bozor — маркетплейс Узбекистана</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
@@ -10,46 +10,47 @@
 </head>
 <body>
 <header class="topbar">
-  <a class="brand" href="#"><span class="brand-mark">B</span><span>Bozor<small>Маркетплейс Узбекистана</small></span></a>
-  <div class="search"><span>⌕</span><input id="searchInput" placeholder="Что ищем сегодня?" aria-label="Поиск товаров"></div>
-  <button id="chatNav" class="nav-button">Сообщения <span id="unreadBadge" class="badge">0</span></button>
-  <button id="sellNav" class="primary">＋ Разместить</button>
+  <a class="brand" href="#"><span class="brand-mark">B</span><span>Bozor<small data-i18n="brandSub">Маркетплейс Узбекистана</small></span></a>
+  <div class="search"><span>⌕</span><input id="searchInput" data-i18n-placeholder="searchPlaceholder" placeholder="Что ищем сегодня?" aria-label="Поиск товаров"></div>
+  <select id="languageSelect" aria-label="Language" title="Language" style="border:1px solid #e3e0f3;background:#fff;border-radius:13px;padding:11px 9px;font-weight:800;color:#5145c9;max-width:100px"><option value="ru">РУС</option><option value="uz">UZB</option><option value="en">ENG</option></select>
+  <button id="chatNav" class="nav-button"><span data-i18n="messages">Сообщения</span> <span id="unreadBadge" class="badge">0</span></button>
+  <button id="sellNav" class="primary"><span data-i18n="sell">＋ Разместить</span></button>
 </header>
 <main class="page">
   <section class="hero">
-    <div><p class="eyebrow">ПОКУПАЙ · ПРОДАВАЙ · ДОГОВАРИВАЙСЯ</p><h1>Найди своё.<br><span>Продай своё.</span></h1><p class="hero-copy">Объявления рядом, прямые сообщения и честный торг — в одном месте.</p><button id="heroSell" class="primary">Разместить объявление <span>→</span></button></div>
-    <div class="hero-art"><div class="art-circle"></div><div class="art-card card-back">🎧</div><div class="art-card card-front">📱<small>Твоя следующая находка</small></div><div class="art-tag">BOZOR.UZ</div></div>
+    <div><p class="eyebrow" data-i18n="heroEyebrow">ПОКУПАЙ · ПРОДАВАЙ · ДОГОВАРИВАЙСЯ</p><h1 data-i18n="heroTitle">Найди своё.<br><span>Продай своё.</span></h1><p class="hero-copy" data-i18n="heroCopy">Объявления рядом, прямые сообщения и честный торг — в одном месте.</p><button id="heroSell" class="primary"><span data-i18n="heroButton">Разместить объявление</span> <span>→</span></button></div>
+    <div class="hero-art"><div class="art-circle"></div><div class="art-card card-back">🎧</div><div class="art-card card-front">📱<small data-i18n="heroArt">Твоя следующая находка</small></div><div class="art-tag">BOZOR.UZ</div></div>
   </section>
   <section class="category-row" id="categories">
-    <button class="category active" data-category="Все">✨<span>Все товары</span></button>
-    <button class="category" data-category="Телефоны">📱<span>Телефоны</span></button>
-    <button class="category" data-category="Компьютеры">💻<span>Компьютеры</span></button>
-    <button class="category" data-category="Аксессуары">🎧<span>Аксессуары</span></button>
-    <button class="category" data-category="Игры">🎮<span>Игры</span></button>
-    <button class="category" data-category="Часы">⌚<span>Часы</span></button>
-    <button class="category" data-category="Другое">📦<span>Другое</span></button>
+    <button class="category active" data-category="Все">✨<span data-i18n="catAll">Все товары</span></button>
+    <button class="category" data-category="Телефоны">📱<span data-i18n="catPhones">Телефоны</span></button>
+    <button class="category" data-category="Компьютеры">💻<span data-i18n="catComputers">Компьютеры</span></button>
+    <button class="category" data-category="Аксессуары">🎧<span data-i18n="catAccessories">Аксессуары</span></button>
+    <button class="category" data-category="Игры">🎮<span data-i18n="catGames">Игры</span></button>
+    <button class="category" data-category="Часы">⌚<span data-i18n="catWatches">Часы</span></button>
+    <button class="category" data-category="Другое">📦<span data-i18n="catOther">Другое</span></button>
   </section>
-  <section class="section-head"><div><p class="eyebrow">СВЕЖИЕ ОБЪЯВЛЕНИЯ</p><h2>Товары для тебя</h2></div><div class="status" id="connectionStatus"><i></i> Проверяем подключение…</div></section>
+  <section class="section-head"><div><p class="eyebrow" data-i18n="fresh">СВЕЖИЕ ОБЪЯВЛЕНИЯ</p><h2 data-i18n="productsForYou">Товары для тебя</h2></div><div class="status" id="connectionStatus"><i></i> <span data-i18n="checking">Проверяем подключение…</span></div></section>
   <div id="notice" class="notice hidden"></div>
-  <section id="productGrid" class="product-grid"><div class="empty loading">Загружаем каталог…</div></section>
-  <section id="myOffersSection" class="secondary-section hidden"><div class="section-head"><div><p class="eyebrow">ТВОИ ПРЕДЛОЖЕНИЯ</p><h2>Мой торг</h2></div></div><div id="myOffers" class="offer-list"></div></section>
+  <section id="productGrid" class="product-grid"><div class="empty loading" data-i18n="loading">Загружаем каталог…</div></section>
+  <section id="myOffersSection" class="secondary-section hidden"><div class="section-head"><div><p class="eyebrow" data-i18n="yourOffers">ТВОИ ПРЕДЛОЖЕНИЯ</p><h2 data-i18n="myBargaining">Мой торг</h2></div></div><div id="myOffers" class="offer-list"></div></section>
 </main>
-<footer><a class="brand footer-brand" href="#"><span class="brand-mark">B</span><span>Bozor<small>Торговля становится проще</small></span></a><span>Покупай разумно. Продавай легко.</span></footer>
+<footer><a class="brand footer-brand" href="#"><span class="brand-mark">B</span><span>Bozor<small data-i18n="footerSub">Торговля становится проще</small></span></a><span data-i18n="footerLine">Покупай разумно. Продавай легко.</span></footer>
 
 <div id="productModal" class="modal hidden" role="dialog" aria-modal="true">
- <div class="modal-panel"><button class="close" data-close="productModal">×</button><p class="eyebrow">НОВОЕ ОБЪЯВЛЕНИЕ</p><h2>Что продаёшь?</h2>
+ <div class="modal-panel"><button class="close" data-close="productModal">×</button><p class="eyebrow" data-i18n="newListing">НОВОЕ ОБЪЯВЛЕНИЕ</p><h2 data-i18n="whatSell">Что продаёшь?</h2>
  <form id="productForm" class="form-grid">
-  <label class="full">Название товара<input id="productTitle" required maxlength="90" placeholder="Например, iPhone 13"></label>
-  <label>Цена (сум)<input id="productPrice" type="number" min="1" required placeholder="2500000"></label>
-  <label>Категория<select id="productCategory"><option>Телефоны</option><option>Компьютеры</option><option>Аксессуары</option><option>Игры</option><option>Часы</option><option>Другое</option></select></label>
-  <label class="full">Описание<textarea id="productDescription" rows="3" maxlength="800" placeholder="Состояние, комплектация и другое"></textarea></label>
-  <label class="full">Фото товара<input id="productImage" type="file" accept="image/*"><small>Фото сожмётся перед отправкой. Не загружай документы или личные данные.</small></label>
-  <label class="full">Твоё имя<input id="sellerName" required maxlength="40" placeholder="Как к тебе обращаться"></label>
-  <button class="primary full" type="submit">Опубликовать объявление</button>
+  <label class="full"><span data-i18n="productName">Название товара</span><input id="productTitle" required maxlength="90" data-i18n-placeholder="productPlaceholder" placeholder="Например, iPhone 13"></label>
+  <label><span data-i18n="price">Цена (сум)</span><input id="productPrice" type="number" min="1" required placeholder="2500000"></label>
+  <label><span data-i18n="category">Категория</span><select id="productCategory"><option>Телефоны</option><option>Компьютеры</option><option>Аксессуары</option><option>Игры</option><option>Часы</option><option>Другое</option></select></label>
+  <label class="full"><span data-i18n="description">Описание</span><textarea id="productDescription" rows="3" maxlength="800" data-i18n-placeholder="descriptionPlaceholder" placeholder="Состояние, комплектация и другое"></textarea></label>
+  <label class="full"><span data-i18n="productPhoto">Фото товара</span><input id="productImage" type="file" accept="image/*"><small data-i18n="photoHint">Фото сожмётся перед отправкой. Не загружай документы или личные данные.</small></label>
+  <label class="full"><span data-i18n="yourName">Твоё имя</span><input id="sellerName" required maxlength="40" data-i18n-placeholder="namePlaceholder" placeholder="Как к тебе обращаться"></label>
+  <button class="primary full" type="submit" data-i18n="publish">Опубликовать объявление</button>
  </form></div>
 </div>
 <div id="detailModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-panel detail-panel"><button class="close" data-close="detailModal">×</button><div id="detailContent"></div></div></div>
-<div id="chatModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-panel chat-panel"><button class="close" data-close="chatModal">×</button><p class="eyebrow">BOZOR MESSENGER</p><h2 id="chatTitle">Сообщения</h2><div id="chatMessages" class="chat-messages"></div><form id="chatForm" class="chat-compose"><input id="messageInput" required maxlength="1000" placeholder="Напиши сообщение…"><button class="primary" type="submit">➤</button></form></div></div>
-<div id="inboxModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-panel"><button class="close" data-close="inboxModal">×</button><p class="eyebrow">BOZOR MESSENGER</p><h2>Мои сообщения</h2><div id="inboxList" class="inbox-list"></div></div></div>
+<div id="chatModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-panel chat-panel"><button class="close" data-close="chatModal">×</button><p class="eyebrow">BOZOR MESSENGER</p><h2 id="chatTitle" data-i18n="messages">Сообщения</h2><div id="chatMessages" class="chat-messages"></div><form id="chatForm" class="chat-compose"><input id="messageInput" required maxlength="1000" data-i18n-placeholder="messagePlaceholder" placeholder="Напиши сообщение…"><button class="primary" type="submit">➤</button></form></div></div>
+<div id="inboxModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-panel"><button class="close" data-close="inboxModal">×</button><p class="eyebrow">BOZOR MESSENGER</p><h2 data-i18n="myMessages">Мои сообщения</h2><div id="inboxList" class="inbox-list"></div></div></div>
 <div id="toast" class="toast hidden"></div>
 </body></html>
