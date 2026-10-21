@@ -32,7 +32,7 @@
 
   const iconFor = c => ({Телефоны:"📱",Компьютеры:"💻",Аксессуары:"🎧",Игры:"🎮",Часы:"⌚",Другое:"📦"})[c] || "📦";
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  const money = n => Number(n||0).toLocaleString("ru-RU")+" сум";
+  const money = n => Number(n||0).toLocaleString(currentLanguage==="en"?"en-US":currentLanguage==="uz"?"uz-UZ":"ru-RU")+" "+(currentLanguage==="en"?"UZS":currentLanguage==="uz"?"so‘m":"сум");
   function toast(msg){const el=$("#toast");el.textContent=msg;el.classList.remove("hidden");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.add("hidden"),3600);}
   function notice(msg){$("#notice").textContent=msg;$("#notice").classList.remove("hidden");}
   function hideNotice(){$("#notice").classList.add("hidden");}
@@ -51,7 +51,7 @@
   function renderProducts(){
     const term=$("#searchInput").value.trim().toLowerCase();
     const list=products.filter(p=>(activeCategory==="Все"||p.category===activeCategory)&&(!term||`${p.title} ${p.description} ${p.category}`.toLowerCase().includes(term)));
-    $("#productGrid").innerHTML=list.length?list.map(p=>`<article class="product-card" data-product="${esc(p.id)}"><div class="product-image">${p.image_url?`<img loading="lazy" src="${esc(p.image_url)}" alt="${esc(p.title)}">`:`<span class="placeholder">${iconFor(p.category)}</span>`}<span class="product-category">${esc(translatedCategory(p.category||"Другое"))}</span></div><div class="product-info"><h3>${esc(p.title)}</h3><div class="price">${money(p.price)}</div><div class="seller-line"><span class="avatar">${esc((p.seller_name||"П")[0].toUpperCase())}</span><span>${esc(p.seller_name||"Продавец")}</span></div></div></article>`).join(""):`<div class="empty"><strong>${term?t("notFound"):t("emptyTitle")}</strong>${term?t("tryOther"):t("emptyText")}</div>`;
+    $("#productGrid").innerHTML=list.length?list.map(p=>`<article class="product-card" data-product="${esc(p.id)}"><div class="product-image">${p.image_url?`<img loading="lazy" src="${esc(p.image_url)}" alt="${esc(p.title)}">`:`<span class="placeholder">${iconFor(p.category)}</span>`}<span class="product-category">${esc(translatedCategory(p.category||"Другое"))}</span></div><div class="product-info"><h3>${esc(p.title)}</h3><div class="price">${money(p.price)}</div><div class="seller-line"><span class="avatar">${esc((p.seller_name||"П")[0].toUpperCase())}</span><span>${esc(p.seller_name||t("seller"))}</span></div></div></article>`).join(""):`<div class="empty"><strong>${term?t("notFound"):t("emptyTitle")}</strong>${term?t("tryOther"):t("emptyText")}</div>`;
     $$(".product-card").forEach(card=>card.addEventListener("click",()=>showProduct(card.dataset.product)));
   }
   function openSell(){imageData=null;$("#productForm").reset();$("#sellerName").value=guest.name==="Пользователь"?"":guest.name;openModal("productModal");}
@@ -73,7 +73,7 @@
   });
   function showProduct(id){
     const p=products.find(x=>String(x.id)===String(id));if(!p)return;activeProduct=p;
-    $("#detailContent").innerHTML=`<p class="eyebrow">${esc(p.category||"Другое")}</p><h2>${esc(p.title)}</h2><div class="detail-image">${p.image_url?`<img src="${esc(p.image_url)}" alt="${esc(p.title)}">`:`<span class="placeholder">${iconFor(p.category)}</span>`}</div><div class="detail-price">${money(p.price)}</div><div class="seller-line"><span class="avatar">${esc((p.seller_name||"П")[0].toUpperCase())}</span><span>${esc(t("seller"))}: <b>${esc(p.seller_name||t("seller"))}</b></span></div><p class="detail-description">${esc(p.description||"Продавец пока не добавил описание.")}</p><div class="detail-actions">${p.seller_id===guest.id?`<button class="nav-button" id="viewProductOffers">${t("viewOffers")}</button>`:`<button class="nav-button" id="messageSeller">${t("writeSeller")}</button><button class="primary" id="makeOffer">${t("makeOffer")}</button>`}</div>`;
+    $("#detailContent").innerHTML=`<p class="eyebrow">${esc(translatedCategory(p.category||"Другое"))}</p><h2>${esc(p.title)}</h2><div class="detail-image">${p.image_url?`<img src="${esc(p.image_url)}" alt="${esc(p.title)}">`:`<span class="placeholder">${iconFor(p.category)}</span>`}</div><div class="detail-price">${money(p.price)}</div><div class="seller-line"><span class="avatar">${esc((p.seller_name||"П")[0].toUpperCase())}</span><span>${esc(t("seller"))}: <b>${esc(p.seller_name||t("seller"))}</b></span></div><p class="detail-description">${esc(p.description||t("noDescription"))}</p><div class="detail-actions">${p.seller_id===guest.id?`<button class="nav-button" id="viewProductOffers">${t("viewOffers")}</button>`:`<button class="nav-button" id="messageSeller">${t("writeSeller")}</button><button class="primary" id="makeOffer">${t("makeOffer")}</button>`}</div>`;
     openModal("detailModal");
     $("#messageSeller")?.addEventListener("click",()=>startChat(p));
     $("#makeOffer")?.addEventListener("click",()=>offerPrice(p));
