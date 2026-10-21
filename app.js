@@ -9,6 +9,10 @@
   const storageKey = "bozor_guest_v1";
   const guest = (() => { try { let v = JSON.parse(localStorage.getItem(storageKey)); if(v?.id && v?.name) return v; } catch(e){} const v={id:crypto.randomUUID(),name:"Пользователь"}; localStorage.setItem(storageKey,JSON.stringify(v)); return v; })();
   let products=[], activeCategory="Все", activeProduct=null, activeChat=null, chatChannel=null, realtimeChannel=null, imageData=null, toastTimer=null;
+  let currentTheme=localStorage.getItem("bozor_theme")||"day";
+  const themeNames={day:{ru:"День",uz:"Kun",en:"Day",icon:"☀"},dawn:{ru:"Утро",uz:"Tong",en:"Morning",icon:"🌅"},night:{ru:"Ночь",uz:"Tun",en:"Night",icon:"☾"}};
+  function applyTheme(){document.body.dataset.theme=currentTheme;const v=themeNames[currentTheme]||themeNames.day;$("#themeIcon").textContent=v.icon;$("#themeLabel").textContent=v[currentLanguage]||v.en;$("#themeToggle").title=(currentLanguage==="uz"?"Mavzuni almashtirish":currentLanguage==="en"?"Change theme":"Сменить тему");}
+  $("#themeToggle").addEventListener("click",()=>{currentTheme=({day:"dawn",dawn:"night",night:"day"})[currentTheme]||"day";localStorage.setItem("bozor_theme",currentTheme);applyTheme();});
 
   const dictionaries = {
     ru:{brandSub:"Маркетплейс Узбекистана",searchPlaceholder:"Что ищем сегодня?",messages:"Сообщения",sell:"＋ Разместить",heroEyebrow:"ПОКУПАЙ · ПРОДАВАЙ · ДОГОВАРИВАЙСЯ",heroTitle:'Найди своё.<br><span>Продай своё.</span>',heroCopy:"Объявления рядом, прямые сообщения и честный торг — в одном месте.",heroButton:"Разместить объявление",heroArt:"Твоя следующая находка",catAll:"Все товары",catPhones:"Телефоны",catComputers:"Компьютеры",catAccessories:"Аксессуары",catGames:"Игры",catWatches:"Часы",catOther:"Другое",fresh:"СВЕЖИЕ ОБЪЯВЛЕНИЯ",productsForYou:"Товары для тебя",checking:"Проверяем подключение…",loading:"Загружаем каталог…",yourOffers:"ТВОИ ПРЕДЛОЖЕНИЯ",myBargaining:"Мой торг",footerSub:"Торговля становится проще",footerLine:"Покупай разумно. Продавай легко.",newListing:"НОВОЕ ОБЪЯВЛЕНИЕ",whatSell:"Что продаёшь?",productName:"Название товара",productPlaceholder:"Например, iPhone 13",price:"Цена (сум)",category:"Категория",description:"Описание",descriptionPlaceholder:"Состояние, комплектация и другое",productPhoto:"Фото товара",photoHint:"Фото сожмётся перед отправкой. Не загружай документы или личные данные.",yourName:"Твоё имя",namePlaceholder:"Как к тебе обращаться",publish:"Опубликовать объявление",myMessages:"Мои сообщения",all:"Все",phones:"Телефоны",computers:"Компьютеры",accessories:"Аксессуары",games:"Игры",watches:"Часы",other:"Другое",cloud:"Облачная база подключена",demo:"Демо-режим: подключи Supabase",emptyTitle:"Пока нет объявлений",emptyText:"Стань первым продавцом на Bozor.",notFound:"Ничего не найдено",tryOther:"Попробуй другое название.",writeSeller:"✉ Написать продавцу",makeOffer:"Предложить цену",viewOffers:"Посмотреть предложения",seller:"Продавец",noDescription:"У продавца пока нет описания.",messagePlaceholder:"Напиши сообщение…",publishing:"Публикуем…",sellerPrice:"Цена продавца",enterOffer:"Введи свою цену в сумах",invalidPrice:"Введи корректную цену.",samePrice:"Это та же цена. Можно написать продавцу.",offerSent:"Предложение отправлено продавцу."},
@@ -26,6 +30,7 @@
     document.querySelectorAll(".category[data-category]").forEach(el=>{const label=el.querySelector("span");if(label)label.textContent=t(catLabels[el.dataset.category]||"catOther");});
     const categoryOptions=[...$("#productCategory").options];categoryOptions.forEach(o=>{o.textContent=translatedCategory(o.value);});
     $("#languageSelect").value=currentLanguage;
+    applyTheme();
     renderProducts();
   }
   $("#languageSelect").addEventListener("change",e=>{currentLanguage=e.target.value;localStorage.setItem("bozor_language",currentLanguage);applyLanguage();});
@@ -71,16 +76,17 @@
       closeModal("productModal");await listProducts();toast(db?"Объявление опубликовано для всех пользователей.":"Сохранено только на этом устройстве. Подключи Supabase, чтобы объявление увидели другие.");hideNotice();
     }catch(err){console.error(err);toast("Не удалось опубликовать: "+(err.message||"проверь подключение и SQL"));}finally{button.disabled=false;button.textContent=t("publish");}
   });
+  function isOwnProduct(p){return p.seller_id===guest.id || (!!guest.name && guest.name!=="Пользователь" && String(p.seller_name||"").trim().toLocaleLowerCase()===String(guest.name).trim().toLocaleLowerCase());}
   function showProduct(id){
     const p=products.find(x=>String(x.id)===String(id));if(!p)return;activeProduct=p;
-    $("#detailContent").innerHTML=`<p class="eyebrow">${esc(translatedCategory(p.category||"Другое"))}</p><h2>${esc(p.title)}</h2><div class="detail-image">${p.image_url?`<img src="${esc(p.image_url)}" alt="${esc(p.title)}">`:`<span class="placeholder">${iconFor(p.category)}</span>`}</div><div class="detail-price">${money(p.price)}</div><div class="seller-line"><span class="avatar">${esc((p.seller_name||"П")[0].toUpperCase())}</span><span>${esc(t("seller"))}: <b>${esc(p.seller_name||t("seller"))}</b></span></div><p class="detail-description">${esc(p.description||t("noDescription"))}</p><div class="detail-actions">${p.seller_id===guest.id?`<button class="nav-button" id="viewProductOffers">${t("viewOffers")}</button>`:`<button class="nav-button" id="messageSeller">${t("writeSeller")}</button><button class="primary" id="makeOffer">${t("makeOffer")}</button>`}</div>`;
+    $("#detailContent").innerHTML=`<p class="eyebrow">${esc(translatedCategory(p.category||"Другое"))}</p><h2>${esc(p.title)}</h2><div class="detail-image">${p.image_url?`<img src="${esc(p.image_url)}" alt="${esc(p.title)}">`:`<span class="placeholder">${iconFor(p.category)}</span>`}</div><div class="detail-price">${money(p.price)}</div><div class="seller-line"><span class="avatar">${esc((p.seller_name||"П")[0].toUpperCase())}</span><span>${esc(t("seller"))}: <b>${esc(p.seller_name||t("seller"))}</b></span></div><p class="detail-description">${esc(p.description||t("noDescription"))}</p><div class="detail-actions">${isOwnProduct(p)?`<button class="nav-button" id="viewProductOffers">${t("viewOffers")}</button>`:`<button class="nav-button" id="messageSeller">${t("writeSeller")}</button><button class="primary" id="makeOffer">${t("makeOffer")}</button>`}</div>`;
     openModal("detailModal");
     $("#messageSeller")?.addEventListener("click",()=>startChat(p));
     $("#makeOffer")?.addEventListener("click",()=>offerPrice(p));
     $("#viewProductOffers")?.addEventListener("click",()=>{closeModal("detailModal");loadOffersForSeller(p);});
   }
   async function startChat(p){
-    if(p.seller_id===guest.id){toast("Это твоё объявление.");return;}
+    if(isOwnProduct(p)){toast(currentLanguage==="uz"?"Bu sizning e’loningiz.":currentLanguage==="en"?"This is your listing.":"Это твоё объявление.");return;}
     activeChat={productId:p.id,productTitle:p.title,otherId:p.seller_id,otherName:p.seller_name,ownerId:p.seller_id,ownerName:p.seller_name};
     $("#chatTitle").textContent=p.title;closeModal("detailModal");openModal("chatModal");subscribeChat();await loadChat();
   }
