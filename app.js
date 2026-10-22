@@ -7,7 +7,9 @@
     config.supabaseKey && !config.supabaseKey.includes("YOUR_SUPABASE");
   const db = configured && window.supabase ? window.supabase.createClient(config.supabaseUrl, config.supabaseKey) : null;
   const storageKey = "bozor_guest_v1";
-  const guest = (() => { try { let v = JSON.parse(localStorage.getItem(storageKey)); if(v?.id && v?.name) return v; } catch(e){} const v={id:crypto.randomUUID(),name:"Пользователь"}; localStorage.setItem(storageKey,JSON.stringify(v)); return v; })();
+  // Older mobile browsers may not implement crypto.randomUUID(); never let that stop all UI handlers.
+  function createId(){try{if(window.crypto&&typeof window.crypto.randomUUID==="function")return window.crypto.randomUUID();}catch(e){}return "guest-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);}
+  const guest = (() => { try { let v = JSON.parse(localStorage.getItem(storageKey)); if(v?.id && v?.name) return v; } catch(e){} const v={id:createId(),name:"Пользователь"}; try{localStorage.setItem(storageKey,JSON.stringify(v));}catch(e){} return v; })();
   let products=[], activeCategory="Все", activeProduct=null, activeChat=null, chatChannel=null, realtimeChannel=null, imageData=null, toastTimer=null;
   let currentTheme=localStorage.getItem("bozor_theme")||"day";
   const themeNames={day:{ru:"День",uz:"Kun",en:"Day",icon:"☀"},dawn:{ru:"Утро",uz:"Tong",en:"Morning",icon:"🌅"},night:{ru:"Ночь",uz:"Tun",en:"Night",icon:"☾"}};
@@ -20,7 +22,7 @@
   function showAccount(){if(authUser){$("#authHeading").textContent="Ты в Bozor";$("#authIntro").textContent=(authUser.user_metadata?.name||guest.name||"Пользователь")+" · "+(authUser.phone||"");$("#authModeSwitch").classList.add("hidden");$("#authForm").classList.add("hidden");$("#authLogout").classList.remove("hidden");$("#authStatus").classList.add("hidden");}else setAuthMode("login");openModal("authModal");}
   $("#profileNav").addEventListener("click",showAccount);
   $("[data-auth-mode]").forEach(b=>b.addEventListener("click",()=>setAuthMode(b.dataset.authMode)));
-  function applyAuthenticatedUser(user){authUser=user||null;if(user){guest.id=user.id;guest.name=user.user_metadata?.name||guest.name||"Пользователь";}else{guest.id=crypto.randomUUID();guest.name="Пользователь";}localStorage.setItem(storageKey,JSON.stringify(guest));updateProfileLabel();}
+  function applyAuthenticatedUser(user){authUser=user||null;if(user){guest.id=user.id;guest.name=user.user_metadata?.name||guest.name||"Пользователь";}else{guest.id=createId();guest.name="Пользователь";}try{localStorage.setItem(storageKey,JSON.stringify(guest));}catch(e){}updateProfileLabel();}
   async function restoreAuth(){if(!db){updateProfileLabel();return;}const {data,error}=await db.auth.getSession();if(error)console.error(error);applyAuthenticatedUser(data?.session?.user||null);db.auth.onAuthStateChange((_event,session)=>{applyAuthenticatedUser(session?.user||null);listProducts().catch(console.error);renderMyOffers().catch(console.error);});}
   $("#authForm").addEventListener("submit",async e=>{e.preventDefault();if(!db){authStatus("Вход недоступен: Supabase не подключён.","error");return;}const button=$("#authSubmit");button.disabled=true;button.textContent="Подождите…";$("#authStatus").classList.add("hidden");const phone=$("#authPhone").value.trim().replace(/[\s()-]/g,"");const password=$("#authPassword").value;
     try{
